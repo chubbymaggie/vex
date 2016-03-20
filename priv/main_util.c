@@ -42,9 +42,11 @@
 #include "e4c_lite.h"
 E4C_DEFINE_EXCEPTION(VEXError, "VEX Error!", RuntimeException);
 
+#ifdef LINUX_BACKTRACES
 #include <stdio.h>
 #include <execinfo.h>
 #include <string.h>
+#endif
 
 /*---------------------------------------------------------*/
 /*--- Storage                                           ---*/
@@ -242,6 +244,7 @@ void vpanic ( const HChar* str )
 }
 
 void print_backtrace() {
+#ifdef LINUX_BACKTRACES
    void *bt_data[256];
    int bt_size;
    char **bt_strings;
@@ -268,6 +271,7 @@ void print_backtrace() {
          vex_printf("%s\n", bt_strings[i]);
       }
    }
+#endif
 }
 
 
@@ -617,6 +621,59 @@ UInt vex_sprintf ( HChar* buf, const HChar *format, ... )
 
    vassert(vex_strlen(buf) == ret);
    return ret;
+}
+
+
+/*---------------------------------------------------------*/
+/*--- Misaligned memory access support                  ---*/
+/*---------------------------------------------------------*/
+
+UInt read_misaligned_UInt_LE ( void* addr )
+{
+   UChar* p = (UChar*)addr;
+   UInt   w = 0;
+   w = (w << 8) | p[3];
+   w = (w << 8) | p[2];
+   w = (w << 8) | p[1];
+   w = (w << 8) | p[0];
+   return w;
+}
+
+ULong read_misaligned_ULong_LE ( void* addr )
+{
+   UChar* p = (UChar*)addr;
+   ULong  w = 0;
+   w = (w << 8) | p[7];
+   w = (w << 8) | p[6];
+   w = (w << 8) | p[5];
+   w = (w << 8) | p[4];
+   w = (w << 8) | p[3];
+   w = (w << 8) | p[2];
+   w = (w << 8) | p[1];
+   w = (w << 8) | p[0];
+   return w;
+}
+
+void write_misaligned_UInt_LE ( void* addr, UInt w )
+{
+   UChar* p = (UChar*)addr;
+   p[0] = (w & 0xFF); w >>= 8;
+   p[1] = (w & 0xFF); w >>= 8;
+   p[2] = (w & 0xFF); w >>= 8;
+   p[3] = (w & 0xFF); w >>= 8;
+}
+
+void write_misaligned_ULong_LE ( void* addr, ULong w )
+{
+   UChar* p = (UChar*)addr;
+   p[0] = (w & 0xFF); w >>= 8;
+   p[1] = (w & 0xFF); w >>= 8;
+   p[2] = (w & 0xFF); w >>= 8;
+   p[3] = (w & 0xFF); w >>= 8;
+   p[4] = (w & 0xFF); w >>= 8;
+   p[5] = (w & 0xFF); w >>= 8;
+   p[6] = (w & 0xFF); w >>= 8;
+   p[7] = (w & 0xFF); w >>= 8;
 }
 
 

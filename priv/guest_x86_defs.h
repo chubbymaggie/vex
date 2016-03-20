@@ -148,6 +148,7 @@ extern void  x86g_dirtyhelper_CPUID_sse0 ( VexGuestX86State* );
 extern void  x86g_dirtyhelper_CPUID_mmxext ( VexGuestX86State* );
 extern void  x86g_dirtyhelper_CPUID_sse1 ( VexGuestX86State* );
 extern void  x86g_dirtyhelper_CPUID_sse2 ( VexGuestX86State* );
+extern void  x86g_dirtyhelper_CPUID_sse3 ( VexGuestX86State* );
 
 extern void  x86g_dirtyhelper_FINIT ( VexGuestX86State* );
 
@@ -163,6 +164,11 @@ extern void x86g_dirtyhelper_OUT ( UInt portno, UInt data,
 
 extern void x86g_dirtyhelper_SxDT ( void* address,
                                     UInt op /* 0 or 1 */ );
+
+extern void x86g_dirtyhelper_LGDT_LIDT ( void* address,
+                                         UInt op /* 2 or 3 */ );
+
+extern void x86g_dirtyhelper_write_cr0 ( UInt value );
 
 extern VexEmNote
             x86g_dirtyhelper_FXRSTOR ( VexGuestX86State*, HWord );
@@ -192,6 +198,15 @@ extern VexEmNote
 #define X86G_CC_MASK_A    (1 << X86G_CC_SHIFT_A)
 #define X86G_CC_MASK_C    (1 << X86G_CC_SHIFT_C)
 #define X86G_CC_MASK_P    (1 << X86G_CC_SHIFT_P)
+
+/* additional eflags masks */
+#define X86G_CC_SHIFT_ID  21
+#define X86G_CC_SHIFT_AC  18
+#define X86G_CC_SHIFT_D   10
+
+#define X86G_CC_MASK_ID   (1 << X86G_CC_SHIFT_ID)
+#define X86G_CC_MASK_AC   (1 << X86G_CC_SHIFT_AC)
+#define X86G_CC_MASK_D    (1 << X86G_CC_SHIFT_D)
 
 /* FPU flag masks */
 #define X86G_FC_SHIFT_C3   14

@@ -37,6 +37,7 @@
 #define __LIBVEX_PUB_GUEST_X86_H
 
 #include "libvex_basictypes.h"
+#include "libvex_emnote.h"
 
 
 /*---------------------------------------------------------------*/
@@ -177,31 +178,31 @@ typedef
       /* SSE */
       UInt  guest_SSEROUND;   /* 156 */
       U128  guest_XMM0;       /* 160 */
-      U128  guest_XMM1;
-      U128  guest_XMM2;
-      U128  guest_XMM3;
-      U128  guest_XMM4;
-      U128  guest_XMM5;
-      U128  guest_XMM6;
-      U128  guest_XMM7;
+      U128  guest_XMM1;       /* 176 */
+      U128  guest_XMM2;       /* 192 */
+      U128  guest_XMM3;       /* 208 */
+      U128  guest_XMM4;       /* 224 */
+      U128  guest_XMM5;       /* 240 */
+      U128  guest_XMM6;       /* 256 */
+      U128  guest_XMM7;       /* 272 */
 
       /* Segment registers. */
-      UShort guest_CS;
-      UShort guest_DS;
-      UShort guest_ES;
-      UShort guest_FS;
-      UShort guest_GS;
-      UShort guest_SS;
+      UShort guest_CS;        /* 288 */
+      UShort guest_DS;        /* 290 */
+      UShort guest_ES;        /* 292 */
+      UShort guest_FS;        /* 294 */
+      UShort guest_GS;        /* 296 */
+      UShort guest_SS;        /* 298 */
       /* LDT/GDT stuff. */
-      HWord  guest_LDT; /* host addr, a VexGuestX86SegDescr* */
-      HWord  guest_GDT; /* host addr, a VexGuestX86SegDescr* */
+      HWord  guest_LDT;       /* 304 */ /* host addr, a VexGuestX86SegDescr* */
+      HWord  guest_GDT;       /* 312 */ /* host addr, a VexGuestX86SegDescr* */
 
       /* Emulation notes */
-      UInt   guest_EMNOTE;
+      UInt   guest_EMNOTE;    /* 316 */
 
       /* For clflush/clinval: record start and length of area */
-      UInt guest_CMSTART;
-      UInt guest_CMLEN;
+      UInt guest_CMSTART;     /* 320 */
+      UInt guest_CMLEN;       /* 324 */
 
       /* Used to record the unredirected guest address at the start of
          a translation whose start has been redirected.  By reading
@@ -209,21 +210,21 @@ typedef
          find out what the corresponding no-redirection address was.
          Note, this is only set for wrap-style redirects, not for
          replace-style ones. */
-      UInt guest_NRADDR;
+      UInt guest_NRADDR;      /* 328 */
 
       /* Used for Darwin syscall dispatching. */
-      UInt guest_SC_CLASS;
+      UInt guest_SC_CLASS;    /* 332 */
 
       /* Needed for Darwin (but mandated for all guest architectures):
          EIP at the last syscall insn (int 0x80/81/82, sysenter,
          syscall).  Used when backing up to restart a syscall that has
          been interrupted by a signal. */
-      UInt guest_IP_AT_SYSCALL;
+      UInt guest_IP_AT_SYSCALL; /* 336 */
 
       /* Padding to make it have an 16-aligned size */
-      UInt padding1;
+      UInt padding1;            /* 340 */
    }
-   VexGuestX86State;
+   VexGuestX86State;            /* 344 */
 
 #define VEX_GUEST_X86_LDT_NENT /*64*/ 8192 /* use complete LDT */
 #define VEX_GUEST_X86_GDT_NENT /*16*/ 8192 /* use complete GDT */
@@ -279,12 +280,40 @@ void LibVEX_GuestX86_initialise ( /*OUT*/VexGuestX86State* vex_state );
 extern 
 UInt LibVEX_GuestX86_get_eflags ( /*IN*/const VexGuestX86State* vex_state );
 
+/* Put eflags into the given state. */
+extern
+void LibVEX_GuestX86_put_eflags ( UInt eflags,
+                                  /*MOD*/VexGuestX86State* vex_state );
+
 /* Set the carry flag in the given state to 'new_carry_flag', which
    should be zero or one. */
 extern
 void
 LibVEX_GuestX86_put_eflag_c ( UInt new_carry_flag,
                               /*MOD*/VexGuestX86State* vex_state );
+
+/* Do x87 save from the supplied VexGuestX86State structure and store the
+   result at the given address which represents a buffer of at least 108
+   bytes. */
+extern
+void LibVEX_GuestX86_get_x87 ( /*IN*/VexGuestX86State* vex_state,
+                               /*OUT*/UChar* x87_state );
+
+/* Do x87 restore from the supplied address and store read values to the given
+   VexGuestX86State structure. */
+extern
+VexEmNote LibVEX_GuestX86_put_x87 ( /*IN*/UChar* x87_state,
+                                    /*MOD*/VexGuestX86State* vex_state);
+
+/* Return mxcsr from the supplied VexGuestX86State structure. */
+extern
+UInt LibVEX_GuestX86_get_mxcsr ( /*IN*/VexGuestX86State* vex_state );
+
+/* Modify the given VexGuestX86State structure according to the passed mxcsr
+   value. */
+extern
+VexEmNote LibVEX_GuestX86_put_mxcsr ( /*IN*/UInt mxcsr,
+                                      /*MOD*/VexGuestX86State* vex_state);
 
 #endif /* ndef __LIBVEX_PUB_GUEST_X86_H */
 

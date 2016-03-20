@@ -63,7 +63,8 @@ typedef
       VexArchPPC64,
       VexArchS390X,
       VexArchMIPS32,
-      VexArchMIPS64
+      VexArchMIPS64,
+      VexArchTILEGX
    }
    VexArch;
 
@@ -175,6 +176,9 @@ typedef
 
 #define VEX_HWCAPS_S390X(x)  ((x) & ~VEX_S390X_MODEL_MASK)
 #define VEX_S390X_MODEL(x)   ((x) &  VEX_S390X_MODEL_MASK)
+
+/* Tilegx: baseline capability is TILEGX36 */
+#define VEX_HWCAPS_TILEGX_BASE (1<<16)  /* TILEGX Baseline */
 
 /* arm: baseline capability is ARMv4 */
 /* Bits 5:0 - architecture level (e.g. 5 for v5, 6 for v6 etc) */
@@ -300,6 +304,9 @@ typedef
          line size of 64 bytes would be encoded here as 6. */
       UInt arm64_dMinLine_lg2_szB;
       UInt arm64_iMinLine_lg2_szB;
+      /* x86 cr0 register value, useful for distinguishing real/protected
+       * mode when decoding instructions */
+      UInt x86_cr0;
    }
    VexArchInfo;
 
@@ -323,11 +330,13 @@ void LibVEX_default_VexArchInfo ( /*OUT*/VexArchInfo* vai );
    guest_amd64_assume_fs_is_const
       guest is amd64-linux                ==> True
       guest is amd64-darwin               ==> False
+      guest is amd64-solaris              ==> True
       guest is other                      ==> inapplicable
 
    guest_amd64_assume_gs_is_const
       guest is amd64-darwin               ==> True
       guest is amd64-linux                ==> True
+      guest is amd64-solaris              ==> False
       guest is other                      ==> inapplicable
 
    guest_ppc_zap_RZ_at_blr
@@ -354,7 +363,7 @@ typedef
 
       /* AMD64 GUESTS only: should we translate %fs-prefixed
          instructions using the assumption that %fs always contains
-         the same value? (typically zero on linux) */
+         the same value? (typically zero on linux and solaris) */
       Bool guest_amd64_assume_fs_is_const;
 
       /* AMD64 GUESTS only: should we translate %gs-prefixed
